@@ -73,14 +73,31 @@ define(function() {
   var ieLoads = [];
   var ieCurCallback;
   
-  var createIeLoad = function(url) {
+  var importExists = function (url) {
+    var a = document.createElement('a');
+    var styles = document.getElementsByTagName('style');
+    for (var si = 0; si < styles.length; si++) {
+      var sheet = styles[si].styleSheet || styles[si].sheet;
+      for (var i = 0; i < sheet.imports.length; i++) {
+        var href = sheet.imports[i].href;
+        a.href = url; // make URL absolute (does not work in IE6)
+        if (a.href == href) return true;
+      }
+    }
+    return false;
+  }
+  var createIeLoad = function (url) {
+    if (curSheet.imports && importExists(url)) {
+      processIeLoad();
+      return;
+    }
     ieCnt++;
     if (ieCnt == 32) {
       createStyle();
       ieCnt = 0;
     }
     curSheet.addImport(url);
-    curStyle.onload = processIeLoad;
+    curStyle.onload = processIeLoad; 
   }
   var processIeLoad = function() {
     ieCurCallback();
